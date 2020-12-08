@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/26 12:27:45 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/07 17:59:25 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/08 18:35:42 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void terminate()
   sec = params.end.tv_sec - params.start.tv_sec;
   usec = params.end.tv_usec - params.start.tv_usec;
   int precision;
-  if (ratio == 0)
+  if (ratio == 0 || ratio == 100)
     precision = 0;
   else if (ratio < 10)
     precision = 5;
@@ -69,6 +69,8 @@ void terminate()
 void print_error(char *str)
 {
   printf("%s\n", str);
+  if (params.ipv4)
+    free(params.ipv4);
   exit(EXIT_FAILURE);
 }
 
@@ -159,7 +161,6 @@ void get_target(char *address)
   if ((status = getaddrinfo(address, NULL, &hints, &res)) != 0)
   {
     fprintf(stderr, "ping: %s: %s\n", address, ft_gai_strerror(status));
-    ft_freeaddrinfo(&res);
     exit(EXIT_FAILURE);
   }
 
@@ -179,7 +180,6 @@ void get_target(char *address)
       ft_freeaddrinfo(&res);
         print_error("inet_ntop error");
       }
-      ft_freeaddrinfo(&res);
       params.target = target;
       params.ipv4 = ft_strdup(ipstr);
     }
@@ -244,9 +244,11 @@ void send_ping()
   reply.tv_sec = 0;
   reply.tv_usec = 0;
   long int duration;
+struct iphdr *ip;
+struct icmphdr *icmp;
 
   alarm(1);
-int ttl = 56; /* max = 255 */ 
+int ttl = 155; /* max = 255 */ 
   if (setsockopt(params.sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0)
     print_error("setsockopt setting IP_TTL failed");
   if (setsockopt(params.sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
@@ -256,16 +258,20 @@ int ttl = 56; /* max = 255 */
   //                sizeof(timeout)) < 0)
   //  print_error("setsockopt failed");
   params.packet.hdr.un.echo.sequence++;
+
   params.packet.hdr.checksum = 0;
   params.packet.hdr.checksum = checksum(&(params.packet), sizeof(params.packet));
   if (sendto(params.sock, &(params.packet), sizeof(params.packet), 0, (struct sockaddr *)params.target, sizeof(*params.target)) <= 0)
     printf("ping: sendto: Le réseau n'est pas accessible\n");
   if (recvmsg(params.sock, &params.msg, 0) > 0)
   {
+    ip = (struct iphdr *)params.msg.msg_iov[0].iov_base;
+  icmp = (struct icmphdr *)(params.msg.msg_iov[0].iov_base + sizeof(struct iphdr));
+   
     gettimeofday(&reply, NULL);
     duration = reply.tv_usec - request.tv_usec;
     params.received++;
-    printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%ld.%ld ms\n",params.ipv4, params.packet.hdr.un.echo.sequence, 56, duration/1000, (duration/10)%100);
+    printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%ld.%ld ms\n",params.ipv4, icmp->un.echo.sequence, ip->ttl, duration/1000, (duration/10)%100);
   }
 }
 
@@ -309,12 +315,15 @@ int main(int argc, char **argv)
   (void)argc;
   (void)argv;
   float f = 3;
-  char address[] = "185.12.49.10";
+  char address[] = "google.fr";
 
   signal(SIGALRM, send_ping);
   signal(SIGINT, terminate);
   init_params();
+
   get_target(address);
+
+
   gettimeofday(&params.start, NULL);
   printf("PING %s (%s) 56(84) bytes of data.\n", address, params.ipv4);
   // printf("s_addr == %u\n", target->sin_addr.s_addr);
