@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/26 12:27:45 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/13 11:43:35 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/13 16:03:17 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,62 @@
 
 t_params params;
 
+void free_all()
+{
+  if (params.address != NULL)
+    free(params.address);
+  if (params.ipv4 != NULL)
+    free(params.ipv4);
+  if (params.rdns != NULL)
+    free(params.rdns);
+}
 
+char *ft_strdup(const char *s1)
+{
+  int i;
+  char *cpy;
+
+  i = 0;
+  while (s1[i] != '\0')
+    i++;
+  if (!(cpy = (char *)malloc(sizeof(char) * (i + 1))))
+    return (0);
+  i = 0;
+  while (s1[i] != '\0')
+  {
+    cpy[i] = s1[i];
+    i++;
+  }
+  cpy[i] = '\0';
+  return (cpy);
+}
+
+char *reverse_dns_lookup()
+{
+  socklen_t len;
+  char buf[NI_MAXHOST];
+  char *rdns;
+
+  // struct sockaddr_in tmp;
+
+  // tmp = params.target;
+
+  rdns = NULL;
+
+  // temp_addr.sin_addr.s_addr = inet_addr(ip_addr);
+  len = sizeof(struct sockaddr_in);
+
+  if (getnameinfo((struct sockaddr *)&params.target, len, buf,
+                  sizeof(buf), NULL, 0, 0))
+  {
+    return (NULL);
+    //   print_error("Could not resolve reverse lookup of hostname");
+  }
+  // ret_buf = (char*)malloc((strlen(buf) +1)*sizeof(char) );
+  // strcpy(ret_buf, buf);
+  rdns = ft_strdup(buf);
+  return (rdns);
+}
 
 void ft_bzero(void *s, size_t n)
 {
@@ -35,6 +90,7 @@ void init_params()
 {
   params.address = NULL;
   params.ipv4 = NULL;
+  params.rdns = NULL;
   params.sock = 0;
   params.target = NULL;
   ft_bzero(&params.packet, sizeof(params.packet));
@@ -64,51 +120,28 @@ void terminate()
   int duration = (usec / 1000) + (sec * 1000); // revoir
   printf("\n--- %s ping statistics ---\n", params.address);
   printf("%d packets transmitted, %d received, %.*f%% packet loss, time %dms\n", params.packet.hdr.un.echo.sequence, params.received, precision, ratio, duration);
-  printf("rtt min/avg/max/mdev =" );
-  free(params.address);
+
+  free_all();
   exit(EXIT_SUCCESS);
 }
 
 void print_error(char *str)
 {
-  printf("%s\n", str);
-  if (params.address)
-    free(params.address);
-  if (params.ipv4)
-    free(params.ipv4);
+  fprintf(stderr, "%s\n", str);
+  free_all();
   exit(EXIT_FAILURE);
 }
 
-char *ft_strdup(const char *s1)
-{
-  int i;
-  char *cpy;
-
-  i = 0;
-  while (s1[i] != '\0')
-    i++;
-  if (!(cpy = (char *)malloc(sizeof(char) * (i + 1))))
-    return (0);
-  i = 0;
-  while (s1[i] != '\0')
-  {
-    cpy[i] = s1[i];
-    i++;
-  }
-  cpy[i] = '\0';
-  return (cpy);
-}
-
-void ft_freeaddrinfo(struct addrinfo **lst)
+void ft_freeaddrinfo(struct addrinfo *res)
 {
   struct addrinfo *tmp;
 
-  tmp = *lst;
+  tmp = res;
   while (tmp)
   {
-    *lst = (*lst)->ai_next;
+    res = res->ai_next;
     free(tmp);
-    tmp = *lst;
+    tmp = res;
   }
 }
 
@@ -182,15 +215,16 @@ void get_target(char *address)
 
       if (inet_ntop(p->ai_family, &addr, ipstr, sizeof(ipstr)) == NULL)
       {
-        ft_freeaddrinfo(&res);
+        ft_freeaddrinfo(res);
         print_error("inet_ntop error");
       }
       params.target = target;
-      params.ipv4 = ft_strdup(ipstr);
     }
     p = p->ai_next;
   }
-  ft_freeaddrinfo(&res);
+  params.ipv4 = ft_strdup(ipstr);
+
+  freeaddrinfo(res);
 }
 
 unsigned short checksum(void *data, int len)
@@ -255,6 +289,8 @@ void send_ping()
   float time;
   int time_precision;
 
+  //printf("%s\n", params.rdns);
+
   alarm(1);
   int ttl = 156; /* max = 255 */
   if (setsockopt(params.sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0)
@@ -271,7 +307,14 @@ void send_ping()
   params.packet.hdr.checksum = checksum(&(params.packet), sizeof(params.packet));
   // printf("seq == %d\n",params.packet.hdr.un.echo.sequence );
   if (sendto(params.sock, &(params.packet), sizeof(params.packet), 0, (struct sockaddr *)params.target, sizeof(*params.target)) <= 0)
+  {
+    if (params.packet.hdr.un.echo.sequence == 1)
+      print_error("ping: sendto: Le réseau n'est pas accessible");
     printf("ping: sendto: Le réseau n'est pas accessible\n");
+
+    return;
+  }
+  printf("PING %s (%s) 56(84) bytes of data.\n", params.address, params.ipv4);
 
   ip = (struct iphdr *)params.msg.msg_iov[0].iov_base;
   icmp = (struct icmphdr *)(params.msg.msg_iov[0].iov_base + sizeof(struct iphdr));
@@ -294,7 +337,10 @@ void send_ping()
     time_precision = 2;
   else
     time_precision = 1;
-  printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.*f ms\n", params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time);
+  if (params.rdns)
+    printf("64 bytes from %s (%s): icmp_seq=%d ttl=%d time=%.*f ms\n", params.rdns, params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time);
+  else
+    printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.*f ms\n", params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time);
 }
 
 void set_params(char *address)
@@ -321,6 +367,7 @@ void set_params(char *address)
   params.msg = msg;
   params.sock = sock;
   params.packet = packet;
+  params.rdns = reverse_dns_lookup();
 
   send_ping();
 
@@ -343,7 +390,6 @@ int main(int argc, char **argv)
   get_target(address);
 
   gettimeofday(&params.start, NULL);
-  printf("PING %s (%s) 56(84) bytes of data.\n", address, params.ipv4);
 
   set_params(address);
 
