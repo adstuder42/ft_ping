@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/26 12:27:45 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/13 16:03:17 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/13 16:15:44 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -314,7 +314,8 @@ void send_ping()
 
     return;
   }
-  printf("PING %s (%s) 56(84) bytes of data.\n", params.address, params.ipv4);
+  if (params.packet.hdr.un.echo.sequence == 1)
+    printf("PING %s (%s) 56(84) bytes of data.\n", params.address, params.ipv4);
 
   ip = (struct iphdr *)params.msg.msg_iov[0].iov_base;
   icmp = (struct icmphdr *)(params.msg.msg_iov[0].iov_base + sizeof(struct iphdr));
