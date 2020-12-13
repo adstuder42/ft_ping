@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/22 16:00:39 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/07 16:16:19 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/10 13:29:09 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ typedef struct s_packet
 
 typedef struct s_params
 {
+    char *address;
     char *ipv4;
     SOCKET sock;
     struct sockaddr_in *target;

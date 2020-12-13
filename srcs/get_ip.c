@@ -6,13 +6,15 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/26 12:27:45 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/08 18:35:42 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/13 11:43:35 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ping.h"
 
 t_params params;
+
+
 
 void ft_bzero(void *s, size_t n)
 {
@@ -31,14 +33,15 @@ void ft_bzero(void *s, size_t n)
 
 void init_params()
 {
-   params.ipv4 = NULL;
-    params.sock = 0;
-    params.target = NULL;
-    ft_bzero(&params.packet,sizeof(params.packet));
-    ft_bzero(&params.msg, sizeof(params.msg));
-    params.received = 0;
-     ft_bzero(&params.start, sizeof(params.start));
-     ft_bzero(&params.end, sizeof(params.end));
+  params.address = NULL;
+  params.ipv4 = NULL;
+  params.sock = 0;
+  params.target = NULL;
+  ft_bzero(&params.packet, sizeof(params.packet));
+  ft_bzero(&params.msg, sizeof(params.msg));
+  params.received = 0;
+  ft_bzero(&params.start, sizeof(params.start));
+  ft_bzero(&params.end, sizeof(params.end));
 }
 
 void terminate()
@@ -47,7 +50,7 @@ void terminate()
   int sec;
   int usec;
   ratio = ((float)params.received / (float)params.packet.hdr.un.echo.sequence * (float)100) - 100;
-  ratio = ratio - 2* ratio;
+  ratio = ratio - 2 * ratio;
   gettimeofday(&params.end, NULL);
   sec = params.end.tv_sec - params.start.tv_sec;
   usec = params.end.tv_usec - params.start.tv_usec;
@@ -58,17 +61,19 @@ void terminate()
     precision = 5;
   else
     precision = 4;
-  int duration = (usec /1000) + (sec * 1000);
-  printf("\n--- %s ping statistics ---\n", params.ipv4);
+  int duration = (usec / 1000) + (sec * 1000); // revoir
+  printf("\n--- %s ping statistics ---\n", params.address);
   printf("%d packets transmitted, %d received, %.*f%% packet loss, time %dms\n", params.packet.hdr.un.echo.sequence, params.received, precision, ratio, duration);
-
-  free(params.ipv4);
+  printf("rtt min/avg/max/mdev =" );
+  free(params.address);
   exit(EXIT_SUCCESS);
 }
 
 void print_error(char *str)
 {
   printf("%s\n", str);
+  if (params.address)
+    free(params.address);
   if (params.ipv4)
     free(params.ipv4);
   exit(EXIT_FAILURE);
@@ -177,7 +182,7 @@ void get_target(char *address)
 
       if (inet_ntop(p->ai_family, &addr, ipstr, sizeof(ipstr)) == NULL)
       {
-      ft_freeaddrinfo(&res);
+        ft_freeaddrinfo(&res);
         print_error("inet_ntop error");
       }
       params.target = target;
@@ -218,6 +223,7 @@ t_packet set_packet()
   ft_bzero(&packet, sizeof(packet));
   packet.hdr.type = ICMP_ECHO;
   packet.hdr.un.echo.id = getpid();
+
   int i = 0;
   while (i < (sizeof(packet.msg) - 1))
   {
@@ -244,11 +250,13 @@ void send_ping()
   reply.tv_sec = 0;
   reply.tv_usec = 0;
   long int duration;
-struct iphdr *ip;
-struct icmphdr *icmp;
+  struct iphdr *ip;
+  struct icmphdr *icmp;
+  float time;
+  int time_precision;
 
   alarm(1);
-int ttl = 155; /* max = 255 */ 
+  int ttl = 156; /* max = 255 */
   if (setsockopt(params.sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0)
     print_error("setsockopt setting IP_TTL failed");
   if (setsockopt(params.sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
@@ -256,26 +264,40 @@ int ttl = 155; /* max = 255 */
   gettimeofday(&request, NULL);
   // if (setsockopt(params.sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,
   //                sizeof(timeout)) < 0)
-  //  print_error("setsockopt failed");
+  // print_error("setsockopt failed");
   params.packet.hdr.un.echo.sequence++;
 
   params.packet.hdr.checksum = 0;
   params.packet.hdr.checksum = checksum(&(params.packet), sizeof(params.packet));
+  // printf("seq == %d\n",params.packet.hdr.un.echo.sequence );
   if (sendto(params.sock, &(params.packet), sizeof(params.packet), 0, (struct sockaddr *)params.target, sizeof(*params.target)) <= 0)
     printf("ping: sendto: Le réseau n'est pas accessible\n");
-  if (recvmsg(params.sock, &params.msg, 0) > 0)
-  {
-    ip = (struct iphdr *)params.msg.msg_iov[0].iov_base;
+
+  ip = (struct iphdr *)params.msg.msg_iov[0].iov_base;
   icmp = (struct icmphdr *)(params.msg.msg_iov[0].iov_base + sizeof(struct iphdr));
-   
-    gettimeofday(&reply, NULL);
-    duration = reply.tv_usec - request.tv_usec;
-    params.received++;
-    printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%ld.%ld ms\n",params.ipv4, icmp->un.echo.sequence, ip->ttl, duration/1000, (duration/10)%100);
+
+  ft_bzero(ip, sizeof(struct iphdr));
+  ft_bzero(icmp, sizeof(struct icmphdr));
+
+  while (icmp->un.echo.sequence != params.packet.hdr.un.echo.sequence || icmp->un.echo.id != getpid() || icmp->code != 0)
+  {
+    if (recvmsg(params.sock, &params.msg, 0) <= 0)
+      print_error("recvmsg error");
   }
+  gettimeofday(&reply, NULL);
+  time = (float)reply.tv_usec - (float)request.tv_usec;
+  params.received++;
+  time = time / 1000;
+  if (time < 0.1)
+    time_precision = 3;
+  else if (time < 10)
+    time_precision = 2;
+  else
+    time_precision = 1;
+  printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.*f ms\n", params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time);
 }
 
-int set_params()
+void set_params(char *address)
 {
   int sequence = 0;
   t_packet packet;
@@ -295,7 +317,7 @@ int set_params()
   msg.msg_iovlen = 1;
   ft_bzero(&packet, sizeof(packet));
   packet = set_packet();
-
+  params.address = ft_strdup(address);
   params.msg = msg;
   params.sock = sock;
   params.packet = packet;
@@ -305,8 +327,6 @@ int set_params()
   while (1)
   {
   }
-
-  return (0);
 }
 
 int main(int argc, char **argv)
@@ -314,8 +334,7 @@ int main(int argc, char **argv)
 
   (void)argc;
   (void)argv;
-  float f = 3;
-  char address[] = "google.fr";
+  char *address = argv[1];
 
   signal(SIGALRM, send_ping);
   signal(SIGINT, terminate);
@@ -323,17 +342,10 @@ int main(int argc, char **argv)
 
   get_target(address);
 
-
   gettimeofday(&params.start, NULL);
   printf("PING %s (%s) 56(84) bytes of data.\n", address, params.ipv4);
-  // printf("s_addr == %u\n", target->sin_addr.s_addr);
-  // printf("sin_family == %u\n", target->sin_family);
-  // printf("sin_port == %u\n", target->sin_port);
 
-  // printf("p.hdr.type == %d\n", packet.hdr.type);
-  // printf("p.hdr.code == %d\n", packet.hdr.code);
-  // printf("p.hdr.checksum == %d\n", packet.hdr.checksum);
-  set_params();
+  set_params(address);
 
   return (0);
 }
