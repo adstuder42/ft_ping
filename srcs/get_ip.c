@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/26 12:27:45 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/14 12:25:57 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/14 17:03:48 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,8 +119,10 @@ void terminate()
     precision = 4;
   int duration = (usec / 1000) + (sec * 1000); // revoir
   printf("\n--- %s ping statistics ---\n", params.address);
+  if (params.error_cnt == 0)
   printf("%d packets transmitted, %d received, %.*f%% packet loss, time %dms\n", params.packet.hdr.un.echo.sequence, params.received, precision, ratio, duration);
-
+  else
+  printf("%d packets transmitted, %d received, +%d errors, %.*f%% packet loss, time %dms\n", params.packet.hdr.un.echo.sequence, params.received, params.error_cnt, precision, ratio, duration); 
   free_all();
   exit(EXIT_SUCCESS);
 }
@@ -271,6 +273,26 @@ t_packet set_packet()
   return (packet);
 }
 
+void print(struct iphdr *ip, struct icmphdr *icmp)
+{
+  printf("id =%d, sequence =%d, type = %d, code = %d\n", icmp->un.echo.id, icmp->un.echo.sequence, icmp->type, icmp->code);
+  printf("%ul\n", ip->saddr);
+}
+
+// void init_headers(struct iphdr *ip , struct icmphdr* icmp)
+// {
+//   ip
+// }
+
+char *ntop(unsigned int naddr)
+{
+  char ipstr[INET6_ADDRSTRLEN];
+
+  if (inet_ntop(AF_INET, &naddr, ipstr, sizeof(ipstr)) == NULL)
+    print_error("inet_ntop error");
+  return (ft_strdup(ipstr));
+}
+
 void send_ping()
 {
   struct timeval timeout;
@@ -292,7 +314,7 @@ void send_ping()
   //printf("%s\n", params.rdns);
 
   alarm(1);
-  int ttl = 155; /* max = 255 */
+  int ttl = 5; /* max = 255 */
   if (setsockopt(params.sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0)
     print_error("setsockopt setting IP_TTL failed");
   if (setsockopt(params.sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
@@ -319,15 +341,25 @@ void send_ping()
   ip = (struct iphdr *)params.msg.msg_iov[0].iov_base;
   icmp = (struct icmphdr *)(params.msg.msg_iov[0].iov_base + sizeof(struct iphdr));
 
+  // init_headers(&ip, &icmp);
   ft_bzero(ip, sizeof(struct iphdr));
   ft_bzero(icmp, sizeof(struct icmphdr));
-
-  while (icmp->un.echo.sequence != params.packet.hdr.un.echo.sequence || icmp->un.echo.id != getpid() || icmp->code != 0)
+  icmp->type = 100;
+  char *p_saddr;
+  while (icmp->type != 0 && icmp->type != 11)
   {
-    if (recvmsg(params.sock, &params.msg, 0) <= 0)
-      print_error("recvmsg error");
+    recvmsg(params.sock, &params.msg, 0);
+    if (icmp->type == 11)
+    {
+      p_saddr = ntop(ip->saddr);
+      printf("From %s (%s) icmp_seq=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence);
+      params.error_cnt++;
+      free(p_saddr);
+      return;
+    }
+    // print_error("recvmsg error");
   }
-
+  //print(ip, icmp);
   gettimeofday(&reply, NULL);
   time = (float)reply.tv_usec - (float)request.tv_usec;
   params.received++;
@@ -369,7 +401,7 @@ void set_params(char *address)
   params.sock = sock;
   params.packet = packet;
   params.rdns = reverse_dns_lookup();
-
+  params.error_cnt = 0;
   send_ping();
 
   while (1)
@@ -388,8 +420,6 @@ int main(int argc, char **argv)
   signal(SIGINT, terminate);
   init_params();
 
-
-  
   get_target(address);
 
   gettimeofday(&params.start, NULL);

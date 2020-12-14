@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/22 16:00:39 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/13 13:11:10 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/14 16:36:43 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ typedef struct s_params
     int received;
     struct timeval start;
     struct timeval end;
+    int error_cnt;
 }             t_params;
 
 /*
