@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/26 12:27:45 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/13 16:15:44 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/14 12:25:57 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ char *reverse_dns_lookup()
   // temp_addr.sin_addr.s_addr = inet_addr(ip_addr);
   len = sizeof(struct sockaddr_in);
 
-  if (getnameinfo((struct sockaddr *)&params.target, len, buf,
+  if (getnameinfo((struct sockaddr *)params.target, len, buf,
                   sizeof(buf), NULL, 0, 0))
   {
     return (NULL);
@@ -292,7 +292,7 @@ void send_ping()
   //printf("%s\n", params.rdns);
 
   alarm(1);
-  int ttl = 156; /* max = 255 */
+  int ttl = 155; /* max = 255 */
   if (setsockopt(params.sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0)
     print_error("setsockopt setting IP_TTL failed");
   if (setsockopt(params.sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
@@ -311,7 +311,6 @@ void send_ping()
     if (params.packet.hdr.un.echo.sequence == 1)
       print_error("ping: sendto: Le réseau n'est pas accessible");
     printf("ping: sendto: Le réseau n'est pas accessible\n");
-
     return;
   }
   if (params.packet.hdr.un.echo.sequence == 1)
@@ -328,6 +327,7 @@ void send_ping()
     if (recvmsg(params.sock, &params.msg, 0) <= 0)
       print_error("recvmsg error");
   }
+
   gettimeofday(&reply, NULL);
   time = (float)reply.tv_usec - (float)request.tv_usec;
   params.received++;
@@ -388,6 +388,8 @@ int main(int argc, char **argv)
   signal(SIGINT, terminate);
   init_params();
 
+
+  
   get_target(address);
 
   gettimeofday(&params.start, NULL);
