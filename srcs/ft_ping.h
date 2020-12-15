@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/22 16:00:39 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/14 16:36:43 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/15 16:57:29 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,12 +34,6 @@ typedef void (*sighandler_t)(int);
 
 #define PACKET_SIZE 64
 
-typedef struct s_ping
-{
-	int flag_v;
-	int flag_h;
-} t_ping;
-
 typedef struct s_packet 
 { 
     struct icmphdr hdr; 
@@ -48,6 +42,8 @@ typedef struct s_packet
 
 typedef struct s_params
 {
+    int flag_v;
+    int flag_h;
     char *address;
     char *ipv4;
     char *rdns;
@@ -59,6 +55,7 @@ typedef struct s_params
     struct timeval start;
     struct timeval end;
     int error_cnt;
+    
 }             t_params;
 
 /*

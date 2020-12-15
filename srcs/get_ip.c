@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/26 12:27:45 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/14 17:03:48 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/15 17:33:46 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,11 @@ void free_all()
     free(params.ipv4);
   if (params.rdns != NULL)
     free(params.rdns);
+}
+void usage()
+{
+  printf("usage:\n");
+  exit(EXIT_FAILURE);
 }
 
 char *ft_strdup(const char *s1)
@@ -88,6 +93,8 @@ void ft_bzero(void *s, size_t n)
 
 void init_params()
 {
+  params.flag_v = 0;
+  params.flag_h = 0;
   params.address = NULL;
   params.ipv4 = NULL;
   params.rdns = NULL;
@@ -98,6 +105,7 @@ void init_params()
   params.received = 0;
   ft_bzero(&params.start, sizeof(params.start));
   ft_bzero(&params.end, sizeof(params.end));
+  params.error_cnt = 0;
 }
 
 void terminate()
@@ -120,9 +128,9 @@ void terminate()
   int duration = (usec / 1000) + (sec * 1000); // revoir
   printf("\n--- %s ping statistics ---\n", params.address);
   if (params.error_cnt == 0)
-  printf("%d packets transmitted, %d received, %.*f%% packet loss, time %dms\n", params.packet.hdr.un.echo.sequence, params.received, precision, ratio, duration);
+    printf("%d packets transmitted, %d received, %.*f%% packet loss, time %dms\n", params.packet.hdr.un.echo.sequence, params.received, precision, ratio, duration);
   else
-  printf("%d packets transmitted, %d received, +%d errors, %.*f%% packet loss, time %dms\n", params.packet.hdr.un.echo.sequence, params.received, params.error_cnt, precision, ratio, duration); 
+    printf("%d packets transmitted, %d received, +%d errors, %.*f%% packet loss, time %dms\n", params.packet.hdr.un.echo.sequence, params.received, params.error_cnt, precision, ratio, duration);
   free_all();
   exit(EXIT_SUCCESS);
 }
@@ -314,7 +322,7 @@ void send_ping()
   //printf("%s\n", params.rdns);
 
   alarm(1);
-  int ttl = 5; /* max = 255 */
+  int ttl = 10; /* max = 255 */
   if (setsockopt(params.sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0)
     print_error("setsockopt setting IP_TTL failed");
   if (setsockopt(params.sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
@@ -401,7 +409,7 @@ void set_params(char *address)
   params.sock = sock;
   params.packet = packet;
   params.rdns = reverse_dns_lookup();
-  params.error_cnt = 0;
+
   send_ping();
 
   while (1)
@@ -409,22 +417,60 @@ void set_params(char *address)
   }
 }
 
+void *get_flags(int argc, char **argv)
+{
+  int i;
+  int j;
+
+  i = 1;
+  while (i < argc)
+  {
+    j = 0;
+    if (argv[i][j] == '-')
+    {
+      j++;
+      while (argv[i][j] != '\0')
+      {
+        if (argv[i][j] == 'v')
+          params.flag_v = 1;
+        else if (argv[i][j] == 'h')
+          params.flag_h = 1;
+        else
+          usage();
+        j++;
+      }
+    }
+    else
+      params.address = ft_strdup(argv[i]);
+    i++;
+  }
+  if (params.flag_h == 1)
+    usage();
+  if (params.address == NULL)
+    print_error("ping: usage error: Adresse de destination requise");
+  
+}
+
 int main(int argc, char **argv)
 {
 
   (void)argc;
   (void)argv;
-  char *address = argv[1];
-
+  if (argc < 2)
+  {
+    usage();
+    return (0);
+  }
   signal(SIGALRM, send_ping);
   signal(SIGINT, terminate);
   init_params();
-
-  get_target(address);
+  get_flags(argc, argv);
+  printf("h = %d\nv = %d\n", params.flag_h, params.flag_v);
+  get_target(params.address);
 
   gettimeofday(&params.start, NULL);
 
-  set_params(address);
+  set_params(params.address);
 
   return (0);
 }
