@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/26 12:27:45 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/15 17:33:46 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/16 13:21:06 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,9 @@ void free_all()
 }
 void usage()
 {
-  printf("usage:\n");
-  exit(EXIT_FAILURE);
+  printf("Usage\n  ping [options] <destination>\n\nOptions:\n  -v                 verbose output\n  -h                 print help and exit\n\n");
+  free_all();
+  exit(EXIT_SUCCESS);
 }
 
 char *ft_strdup(const char *s1)
@@ -322,15 +323,15 @@ void send_ping()
   //printf("%s\n", params.rdns);
 
   alarm(1);
-  int ttl = 10; /* max = 255 */
+  int ttl = 1; /* max = 255 */
   if (setsockopt(params.sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0)
     print_error("setsockopt setting IP_TTL failed");
   if (setsockopt(params.sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
     print_error("setsockopt setting SO_RCVTIMEO failed");
   gettimeofday(&request, NULL);
-  // if (setsockopt(params.sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,
-  //                sizeof(timeout)) < 0)
-  // print_error("setsockopt failed");
+  if (setsockopt(params.sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,
+                 sizeof(timeout)) < 0)
+  print_error("setsockopt failed");
   params.packet.hdr.un.echo.sequence++;
 
   params.packet.hdr.checksum = 0;
@@ -360,6 +361,9 @@ void send_ping()
     if (icmp->type == 11)
     {
       p_saddr = ntop(ip->saddr);
+      if (params.flag_v == 1)
+      printf("From %s (%s) icmp_seq=%d type=%d code=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence, icmp->type, icmp->code);
+      else
       printf("From %s (%s) icmp_seq=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence);
       params.error_cnt++;
       free(p_saddr);
@@ -378,10 +382,15 @@ void send_ping()
     time_precision = 2;
   else
     time_precision = 1;
-  if (params.rdns)
+  if (params.rdns && params.flag_v == 0)
     printf("64 bytes from %s (%s): icmp_seq=%d ttl=%d time=%.*f ms\n", params.rdns, params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time);
-  else
+  if (params.rdns == NULL && params.flag_v == 0)
     printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.*f ms\n", params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time);
+  if (params.rdns && params.flag_v == 1)
+    printf("64 bytes from %s (%s): icmp_seq=%d ttl=%d time=%.*f ms type=%d code=%d\n", params.rdns, params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time, icmp->type, icmp->code);
+  if (params.rdns == NULL && params.flag_v == 1)
+    printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.*f ms type=%d code=%d\n\n", params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time, icmp->type, icmp->code);
+
 }
 
 void set_params(char *address)
@@ -404,7 +413,6 @@ void set_params(char *address)
   msg.msg_iovlen = 1;
   ft_bzero(&packet, sizeof(packet));
   packet = set_packet();
-  params.address = ft_strdup(address);
   params.msg = msg;
   params.sock = sock;
   params.packet = packet;
@@ -458,8 +466,8 @@ int main(int argc, char **argv)
   (void)argv;
   if (argc < 2)
   {
-    usage();
-    return (0);
+    fprintf(stderr, "ping: usage error: destination adress required\n");
+    exit(EXIT_FAILURE);
   }
   signal(SIGALRM, send_ping);
   signal(SIGINT, terminate);
