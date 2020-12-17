@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/26 12:27:45 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/16 13:21:06 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/17 15:06:58 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -302,6 +302,18 @@ char *ntop(unsigned int naddr)
   return (ft_strdup(ipstr));
 }
 
+void print_line(struct iphdr *ip, struct icmphdr *icmp, float time, int time_precision)
+{
+  if (params.rdns && params.flag_v == 0)
+    printf("64 bytes from %s (%s): icmp_seq=%d ttl=%d time=%.*f ms\n", params.rdns, params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time);
+  if (params.rdns == NULL && params.flag_v == 0)
+    printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.*f ms\n", params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time);
+  if (params.rdns && params.flag_v == 1)
+    printf("64 bytes from %s (%s): icmp_seq=%d ttl=%d type=%d code=%d time=%.*f ms\n", params.rdns, params.ipv4, icmp->un.echo.sequence, ip->ttl, icmp->type, icmp->code, time_precision, time);
+  if (params.rdns == NULL && params.flag_v == 1)
+    printf("64 bytes from %s: icmp_seq=%d ttl=%d type=%d code=%d time=%.*f ms\n", params.ipv4, icmp->un.echo.sequence, ip->ttl, icmp->type, icmp->code, time_precision, time);
+}
+
 void send_ping()
 {
   struct timeval timeout;
@@ -323,7 +335,7 @@ void send_ping()
   //printf("%s\n", params.rdns);
 
   alarm(1);
-  int ttl = 1; /* max = 255 */
+  int ttl = 100; /* max = 255 */
   if (setsockopt(params.sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0)
     print_error("setsockopt setting IP_TTL failed");
   if (setsockopt(params.sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
@@ -331,12 +343,12 @@ void send_ping()
   gettimeofday(&request, NULL);
   if (setsockopt(params.sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,
                  sizeof(timeout)) < 0)
-  print_error("setsockopt failed");
+    print_error("setsockopt failed");
   params.packet.hdr.un.echo.sequence++;
 
   params.packet.hdr.checksum = 0;
   params.packet.hdr.checksum = checksum(&(params.packet), sizeof(params.packet));
-  // printf("seq == %d\n",params.packet.hdr.un.echo.sequence );
+  printf("idpacket == %d\n",params.packet.hdr.un.echo.id );
   if (sendto(params.sock, &(params.packet), sizeof(params.packet), 0, (struct sockaddr *)params.target, sizeof(*params.target)) <= 0)
   {
     if (params.packet.hdr.un.echo.sequence == 1)
@@ -350,47 +362,43 @@ void send_ping()
   ip = (struct iphdr *)params.msg.msg_iov[0].iov_base;
   icmp = (struct icmphdr *)(params.msg.msg_iov[0].iov_base + sizeof(struct iphdr));
 
-  // init_headers(&ip, &icmp);
   ft_bzero(ip, sizeof(struct iphdr));
   ft_bzero(icmp, sizeof(struct icmphdr));
   icmp->type = 100;
+  icmp->code = 100;
   char *p_saddr;
-  while (icmp->type != 0 && icmp->type != 11)
-  {
+
+
+
+
+//  while (icmp->type != 0 && icmp->type != 11)
+ // {
     recvmsg(params.sock, &params.msg, 0);
+    printf("idrep == %d\n",icmp->un.echo.id);
+   
     if (icmp->type == 11)
     {
       p_saddr = ntop(ip->saddr);
       if (params.flag_v == 1)
-      printf("From %s (%s) icmp_seq=%d type=%d code=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence, icmp->type, icmp->code);
+        printf("From %s (%s) icmp_seq=%d type=%d code=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence, icmp->type, icmp->code);
       else
-      printf("From %s (%s) icmp_seq=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence);
+        printf("From %s (%s) icmp_seq=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence);
       params.error_cnt++;
       free(p_saddr);
       return;
     }
-    // print_error("recvmsg error");
-  }
-  //print(ip, icmp);
+ // }
   gettimeofday(&reply, NULL);
-  time = (float)reply.tv_usec - (float)request.tv_usec;
+  time = ((float)reply.tv_usec - (float)request.tv_usec) / 1000;
   params.received++;
-  time = time / 1000;
   if (time < 0.1)
     time_precision = 3;
   else if (time < 10)
     time_precision = 2;
   else
     time_precision = 1;
-  if (params.rdns && params.flag_v == 0)
-    printf("64 bytes from %s (%s): icmp_seq=%d ttl=%d time=%.*f ms\n", params.rdns, params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time);
-  if (params.rdns == NULL && params.flag_v == 0)
-    printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.*f ms\n", params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time);
-  if (params.rdns && params.flag_v == 1)
-    printf("64 bytes from %s (%s): icmp_seq=%d ttl=%d time=%.*f ms type=%d code=%d\n", params.rdns, params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time, icmp->type, icmp->code);
-  if (params.rdns == NULL && params.flag_v == 1)
-    printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.*f ms type=%d code=%d\n\n", params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time, icmp->type, icmp->code);
 
+  print_line(ip, icmp, time, time_precision);
 }
 
 void set_params(char *address)
@@ -455,8 +463,7 @@ void *get_flags(int argc, char **argv)
   if (params.flag_h == 1)
     usage();
   if (params.address == NULL)
-    print_error("ping: usage error: Adresse de destination requise");
-  
+    print_error("ping: usage error: destination adress required");
 }
 
 int main(int argc, char **argv)
@@ -473,7 +480,6 @@ int main(int argc, char **argv)
   signal(SIGINT, terminate);
   init_params();
   get_flags(argc, argv);
-  printf("h = %d\nv = %d\n", params.flag_h, params.flag_v);
   get_target(params.address);
 
   gettimeofday(&params.start, NULL);

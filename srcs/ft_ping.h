@@ -6,12 +6,12 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/22 16:00:39 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/15 16:57:29 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/17 15:07:20 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef FT_PING_H
-#define FT_PING_H
+ #define FT_PING_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,23 +22,22 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <netinet/ip_icmp.h> 
+#include <netinet/ip_icmp.h>
 #include <unistd.h>
 #include <signal.h>
 #include <errno.h>
 #include <sys/time.h>
-
 
 typedef int SOCKET;
 typedef void (*sighandler_t)(int);
 
 #define PACKET_SIZE 64
 
-typedef struct s_packet 
-{ 
-    struct icmphdr hdr; 
+typedef struct s_packet
+{
+    struct icmphdr hdr;
     char msg[PACKET_SIZE - sizeof(struct icmphdr)];
-}	t_packet;
+} t_packet;
 
 typedef struct s_params
 {
@@ -55,8 +54,8 @@ typedef struct s_params
     struct timeval start;
     struct timeval end;
     int error_cnt;
-    
-}             t_params;
+
+} t_params;
 
 /*
 struct addrinfo {
