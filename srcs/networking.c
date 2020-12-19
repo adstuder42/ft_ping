@@ -6,11 +6,47 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:03:40 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/17 15:05:54 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/19 12:42:04 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ft_ping.h"
+#include "../includes/ft_ping.h"
+
+char *reverse_dns_lookup()
+{
+  socklen_t len;
+  char buf[NI_MAXHOST];
+  char *rdns;
+
+  // struct sockaddr_in tmp;
+
+  // tmp = params.target;
+
+  rdns = NULL;
+
+  // temp_addr.sin_addr.s_addr = inet_addr(ip_addr);
+  len = sizeof(struct sockaddr_in);
+
+  if (getnameinfo((struct sockaddr *)params.target, len, buf,
+                  sizeof(buf), NULL, 0, 0))
+  {
+    return (NULL);
+    //   print_error("Could not resolve reverse lookup of hostname");
+  }
+  // ret_buf = (char*)malloc((strlen(buf) +1)*sizeof(char) );
+  // strcpy(ret_buf, buf);
+  rdns = ft_strdup(buf);
+  return (rdns);
+}
+
+char *ntop(unsigned int naddr)
+{
+  char ipstr[INET6_ADDRSTRLEN];
+
+  if (inet_ntop(AF_INET, &naddr, ipstr, sizeof(ipstr)) == NULL)
+    print_error("inet_ntop error");
+  return (ft_strdup(ipstr));
+}
 
 void ft_freeaddrinfo(struct addrinfo *res)
 {

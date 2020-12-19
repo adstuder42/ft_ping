@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/22 16:00:39 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/17 15:07:20 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/19 12:51:37 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ typedef void (*sighandler_t)(int);
 
 #define PACKET_SIZE 64
 
+
 typedef struct s_packet
 {
     struct icmphdr hdr;
@@ -57,6 +58,29 @@ typedef struct s_params
 
 } t_params;
 
+t_params params;
+
+void init_params();
+char *ft_strdup(const char *s1);
+void init_hints(struct addrinfo *hints);
+t_packet set_packet();
+void set_params();
+void usage();
+void get_flags(int argc, char **argv);
+int main(int argc, char **argv);
+void print_line(struct iphdr *ip, struct icmphdr *icmp, float time, int time_precision);
+void terminate();
+void send_ping();
+unsigned short checksum(void *data, int len);
+void print_error(char *str);
+char *ft_gai_strerror(int status);
+void free_all();
+char *ft_strdup(const char *s1);
+void ft_bzero(void *s, size_t n);
+char *reverse_dns_lookup();
+char *ntop(unsigned int naddr);
+void ft_freeaddrinfo(struct addrinfo *res);
+void get_target(char *address);
 /*
 struct addrinfo {
     int              ai_flags;
