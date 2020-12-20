@@ -6,13 +6,13 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:16:45 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/19 12:44:53 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/20 16:29:50 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/ft_ping.h"
 
-void print_line(struct iphdr *ip, struct icmphdr *icmp, float time, int time_precision)
+void print_line(struct iphdr *ip, struct icmphdr *icmp, float time)
 {
   int time_precision;
     if (time < 0.1)
@@ -74,10 +74,8 @@ void send_ping()
   struct icmphdr *icmp;
   char *p_saddr;
   float time;
-  int time_precision;
   int ttl = 100; /* max = 255 */
 
-  //printf("%s\n", params.rdns);
 
   alarm(1);
   if (setsockopt(params.sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0)
@@ -139,12 +137,7 @@ void send_ping()
 
   time = ((float)sec + (float)usec) / 1000;
   params.received++;
-  if (time < 0.1)
-    time_precision = 3;
-  else if (time < 10)
-    time_precision = 2;
-  else
-    time_precision = 1;
 
-  print_line(ip, icmp, time, time_precision);
+
+  print_line(ip, icmp, time);
 }
