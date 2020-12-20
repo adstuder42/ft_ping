@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/22 16:00:39 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/19 12:51:37 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/20 17:19:00 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ void set_params();
 void usage();
 void get_flags(int argc, char **argv);
 int main(int argc, char **argv);
-void print_line(struct iphdr *ip, struct icmphdr *icmp, float time, int time_precision);
+void print_line(struct iphdr *ip, struct icmphdr *icmp, float time);
 void terminate();
 void send_ping();
 unsigned short checksum(void *data, int len);
