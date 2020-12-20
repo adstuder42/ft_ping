@@ -14,6 +14,13 @@
 
 void print_line(struct iphdr *ip, struct icmphdr *icmp, float time, int time_precision)
 {
+  int time_precision;
+    if (time < 0.1)
+    time_precision = 3;
+  else if (time < 10)
+    time_precision = 2;
+  else
+    time_precision = 1;
   if (params.rdns && params.flag_v == 0)
     printf("64 bytes from %s (%s): icmp_seq=%d ttl=%d time=%.*f ms\n", params.rdns, params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time);
   if (params.rdns == NULL && params.flag_v == 0)
@@ -107,22 +114,30 @@ void send_ping()
 
 
     if (recvmsg(params.sock, &params.msg, 0) <= 0)
-      print_error("ping: recvmsg error");
-   
-    if (icmp->type == 11)
-    {
-      p_saddr = ntop(ip->saddr);
-      if (params.flag_v == 1)
-        printf("From %s (%s) icmp_seq=%d type=%d code=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence, icmp->type, icmp->code);
-      else
-        printf("From %s (%s) icmp_seq=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence);
-      params.error_cnt++;
-      free(p_saddr);
-      return;
-    }
+    return;
+
+  if (icmp->type == 11)
+  {
+    p_saddr = ntop(ip->saddr);
+    if (params.flag_v == 1)
+      printf("From %s (%s) icmp_seq=%d type=%d code=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence, icmp->type, icmp->code);
+    else
+      printf("From %s (%s) icmp_seq=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence);
+    params.error_cnt++;
+    free(p_saddr);
+    return;
+  }
 
   gettimeofday(&reply, NULL);
-  time = ((float)reply.tv_usec - (float)request.tv_usec) / 1000;
+  // printf("rep = %ld, req = %ld\n",reply.tv_sec, request.tv_sec);
+
+  long int sec = (reply.tv_sec - request.tv_sec) * 1000000;
+  long int usec = reply.tv_usec - request.tv_usec;
+
+  //  printf("%ld, %ld\n",sec, sec * 1000000);
+   //printf("%ld\n",usec);
+
+  time = ((float)sec + (float)usec) / 1000;
   params.received++;
   if (time < 0.1)
     time_precision = 3;
