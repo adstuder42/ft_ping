@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:21:35 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/19 12:44:20 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/21 12:41:52 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,15 +74,21 @@ void set_params()
 
   ft_bzero(&msg, sizeof(msg));
   ft_bzero(iov, sizeof(iov));
+ 
+ 
   iov[0].iov_base = buffer;
   iov[0].iov_len = sizeof(buffer);
+ 
   msg.msg_iov = iov;
   msg.msg_iovlen = 1;
+
+
   ft_bzero(&packet, sizeof(packet));
   packet = set_packet();
   params.msg = msg;
   params.sock = sock;
   params.packet = packet;
+
   params.rdns = reverse_dns_lookup();
 
   send_ping();

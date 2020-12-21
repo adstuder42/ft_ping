@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:16:45 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/20 16:29:50 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/21 12:41:50 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,8 @@ void send_ping()
   int ttl = 100; /* max = 255 */
 
 
+
+
   alarm(1);
   if (setsockopt(params.sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0)
     print_error("setsockopt setting IP_TTL failed");
@@ -111,7 +113,7 @@ void send_ping()
 
 
 
-    if (recvmsg(params.sock, &params.msg, 0) <= 0)
+  if (recvmsg(params.sock, &params.msg, 0) <= 0)
     return;
 
   if (icmp->type == 11)

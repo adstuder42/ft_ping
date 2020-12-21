@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:03:40 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/19 12:42:04 by adstuder         ###   ########.fr       */
+/*   Updated: 2020/12/21 12:40:23 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,23 +18,26 @@ char *reverse_dns_lookup()
   char buf[NI_MAXHOST];
   char *rdns;
 
-  // struct sockaddr_in tmp;
+  struct sockaddr_in tmp;
 
-  // tmp = params.target;
+  tmp.sin_family = params.target->sin_family;
+  tmp.sin_port = params.target->sin_port;
+  tmp.sin_addr.s_addr = params.target->sin_addr.s_addr;
+  
 
   rdns = NULL;
-
-  // temp_addr.sin_addr.s_addr = inet_addr(ip_addr);
   len = sizeof(struct sockaddr_in);
 
   if (getnameinfo((struct sockaddr *)params.target, len, buf,
                   sizeof(buf), NULL, 0, 0))
-  {
     return (NULL);
-    //   print_error("Could not resolve reverse lookup of hostname");
-  }
-  // ret_buf = (char*)malloc((strlen(buf) +1)*sizeof(char) );
-  // strcpy(ret_buf, buf);
+  
+
+  params.target->sin_family = tmp.sin_family;
+  params.target->sin_port = tmp.sin_port;
+ params.target->sin_addr.s_addr = tmp.sin_addr.s_addr; 
+  
+
   rdns = ft_strdup(buf);
   return (rdns);
 }
@@ -86,9 +89,7 @@ void get_target(char *address)
     if (p->ai_family == AF_INET)
     {
       target = (struct sockaddr_in *)p->ai_addr;
-
       addr = target->sin_addr;
-
       if (inet_ntop(p->ai_family, &addr, ipstr, sizeof(ipstr)) == NULL)
       {
         ft_freeaddrinfo(res);
@@ -99,6 +100,10 @@ void get_target(char *address)
     p = p->ai_next;
   }
   params.ipv4 = ft_strdup(ipstr);
-
   freeaddrinfo(res);
+
+//   printf("address %s\n", params.address);
+// printf("ipv4 %s\n", params.ipv4);
+// printf("rdns %s\n", params.rdns);
+//printf("saddr %u\n", params.target->sin_addr.s_addr);
 }
