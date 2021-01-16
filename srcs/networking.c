@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:03:40 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/21 12:40:23 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/01/08 12:42:15 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@ char *reverse_dns_lookup()
   tmp.sin_family = params.target->sin_family;
   tmp.sin_port = params.target->sin_port;
   tmp.sin_addr.s_addr = params.target->sin_addr.s_addr;
-  
 
   rdns = NULL;
   len = sizeof(struct sockaddr_in);
@@ -31,12 +30,10 @@ char *reverse_dns_lookup()
   if (getnameinfo((struct sockaddr *)params.target, len, buf,
                   sizeof(buf), NULL, 0, 0))
     return (NULL);
-  
 
   params.target->sin_family = tmp.sin_family;
   params.target->sin_port = tmp.sin_port;
- params.target->sin_addr.s_addr = tmp.sin_addr.s_addr; 
-  
+  params.target->sin_addr.s_addr = tmp.sin_addr.s_addr;
 
   rdns = ft_strdup(buf);
   return (rdns);
@@ -102,8 +99,8 @@ void get_target(char *address)
   params.ipv4 = ft_strdup(ipstr);
   freeaddrinfo(res);
 
-//   printf("address %s\n", params.address);
-// printf("ipv4 %s\n", params.ipv4);
-// printf("rdns %s\n", params.rdns);
-//printf("saddr %u\n", params.target->sin_addr.s_addr);
+  //   printf("address %s\n", params.address);
+  // printf("ipv4 %s\n", params.ipv4);
+  // printf("rdns %s\n", params.rdns);
+  //printf("saddr %u\n", params.target->sin_addr.s_addr);
 }
