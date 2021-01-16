@@ -6,13 +6,13 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:19:17 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/21 12:41:54 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/01/16 12:19:13 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/ft_ping.h"
 
-
+t_params params;
 
 void usage()
 {
@@ -56,9 +56,6 @@ void get_flags(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-
-  (void)argc;
-  (void)argv;
   if (argc < 2)
   {
     fprintf(stderr, "ping: usage error: destination adress required\n");

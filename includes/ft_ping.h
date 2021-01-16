@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/22 16:00:39 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/20 17:19:00 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/01/16 12:17:21 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ typedef struct s_params
 
 } t_params;
 
-t_params params;
+extern t_params params;
 
 void init_params();
 char *ft_strdup(const char *s1);
