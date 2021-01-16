@@ -6,12 +6,12 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/22 16:00:39 by adstuder          #+#    #+#             */
-/*   Updated: 2021/01/16 12:17:21 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/01/16 13:05:31 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef FT_PING_H
- #define FT_PING_H
+#define FT_PING_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,13 +26,13 @@
 #include <unistd.h>
 #include <signal.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <sys/time.h>
 
 typedef int SOCKET;
 typedef void (*sighandler_t)(int);
 
 #define PACKET_SIZE 64
-
 
 typedef struct s_packet
 {
@@ -47,6 +47,7 @@ typedef struct s_params
     char *address;
     char *ipv4;
     char *rdns;
+    bool isAdressIpv4;
     SOCKET sock;
     struct sockaddr_in *target;
     t_packet packet;
@@ -81,6 +82,8 @@ char *reverse_dns_lookup();
 char *ntop(unsigned int naddr);
 void ft_freeaddrinfo(struct addrinfo *res);
 void get_target(char *address);
+int ft_strcmp(const char *s1, const char *s2);
+
 /*
 struct addrinfo {
     int              ai_flags;

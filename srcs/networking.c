@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:03:40 by adstuder          #+#    #+#             */
-/*   Updated: 2021/01/08 12:42:15 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/01/16 13:10:08 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,8 @@ void get_target(char *address)
     p = p->ai_next;
   }
   params.ipv4 = ft_strdup(ipstr);
+  if (ft_strcmp(params.ipv4, params.address) == 0)
+    params.isAdressIpv4 = true;
   freeaddrinfo(res);
 
   //   printf("address %s\n", params.address);

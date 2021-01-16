@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:16:45 by adstuder          #+#    #+#             */
-/*   Updated: 2020/12/21 12:41:50 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/01/16 13:14:59 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,18 +15,22 @@
 void print_line(struct iphdr *ip, struct icmphdr *icmp, float time)
 {
   int time_precision;
-    if (time < 0.1)
+  if (time < 0.1)
     time_precision = 3;
   else if (time < 10)
     time_precision = 2;
   else
     time_precision = 1;
-  if (params.rdns && params.flag_v == 0)
+  if (params.rdns && params.flag_v == 0 && params.isAdressIpv4 == false)
     printf("64 bytes from %s (%s): icmp_seq=%d ttl=%d time=%.*f ms\n", params.rdns, params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time);
+  if (params.rdns && params.flag_v == 0 && params.isAdressIpv4 == true)
+    printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.*f ms\n", params.rdns, icmp->un.echo.sequence, ip->ttl, time_precision, time);
   if (params.rdns == NULL && params.flag_v == 0)
     printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.*f ms\n", params.ipv4, icmp->un.echo.sequence, ip->ttl, time_precision, time);
-  if (params.rdns && params.flag_v == 1)
+  if (params.rdns && params.flag_v == 1 && params.isAdressIpv4 == false)
     printf("64 bytes from %s (%s): icmp_seq=%d ttl=%d type=%d code=%d time=%.*f ms\n", params.rdns, params.ipv4, icmp->un.echo.sequence, ip->ttl, icmp->type, icmp->code, time_precision, time);
+  if (params.rdns && params.flag_v == 1 && params.isAdressIpv4 == true)
+    printf("64 bytes from %s: icmp_seq=%d ttl=%d type=%d code=%d time=%.*f ms\n", params.rdns, icmp->un.echo.sequence, ip->ttl, icmp->type, icmp->code, time_precision, time);
   if (params.rdns == NULL && params.flag_v == 1)
     printf("64 bytes from %s: icmp_seq=%d ttl=%d type=%d code=%d time=%.*f ms\n", params.ipv4, icmp->un.echo.sequence, ip->ttl, icmp->type, icmp->code, time_precision, time);
 }
@@ -76,9 +80,6 @@ void send_ping()
   float time;
   int ttl = 100; /* max = 255 */
 
-
-
-
   alarm(1);
   if (setsockopt(params.sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0)
     print_error("setsockopt setting IP_TTL failed");
@@ -110,9 +111,6 @@ void send_ping()
   icmp->type = 100;
   icmp->code = 100;
 
-
-
-
   if (recvmsg(params.sock, &params.msg, 0) <= 0)
     return;
 
@@ -135,11 +133,10 @@ void send_ping()
   long int usec = reply.tv_usec - request.tv_usec;
 
   //  printf("%ld, %ld\n",sec, sec * 1000000);
-   //printf("%ld\n",usec);
+  //printf("%ld\n",usec);
 
   time = ((float)sec + (float)usec) / 1000;
   params.received++;
-
 
   print_line(ip, icmp, time);
 }
