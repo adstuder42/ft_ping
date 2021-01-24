@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/22 16:00:39 by adstuder          #+#    #+#             */
-/*   Updated: 2021/01/16 13:05:31 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/01/24 11:59:03 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ typedef int SOCKET;
 typedef void (*sighandler_t)(int);
 
 #define PACKET_SIZE 64
+#define TTL_VALUE 100
 
 typedef struct s_packet
 {

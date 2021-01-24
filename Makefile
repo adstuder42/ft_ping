@@ -6,7 +6,7 @@
 #    By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/12/19 12:29:40 by adstuder          #+#    #+#              #
-#    Updated: 2020/12/19 13:22:20 by adstuder         ###   ########.fr        #
+#    Updated: 2021/01/16 13:50:05 by adstuder         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -58,6 +58,6 @@ $(NAME)         : $(OBJS)
 	@printf "\033[K"
 	@$(CC) $(CFLAGS) $^ -o $(NAME)
 	@printf "\033[37;1m-- $(NAME)        [ \033[32;1mOK\033[37;1m ]\033[0m\\n"
-	@sudo setcap cap_net_raw=pe ft_ping
+#	@sudo setcap cap_net_raw=pe ft_ping
 
 # ***************************************************************************** #

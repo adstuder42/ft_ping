@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:03:40 by adstuder          #+#    #+#             */
-/*   Updated: 2021/01/16 13:10:08 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/01/16 13:44:14 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,10 @@ char *reverse_dns_lookup()
   params.target->sin_port = tmp.sin_port;
   params.target->sin_addr.s_addr = tmp.sin_addr.s_addr;
 
-  rdns = ft_strdup(buf);
+  if (params.isAdressIpv4 == true)
+    rdns = ft_strdup(params.ipv4);
+  else
+    rdns = ft_strdup(buf);
   return (rdns);
 }
 

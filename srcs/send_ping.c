@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:16:45 by adstuder          #+#    #+#             */
-/*   Updated: 2021/01/16 13:14:59 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/01/24 12:42:16 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,8 @@ void send_ping()
   struct icmphdr *icmp;
   char *p_saddr;
   float time;
-  int ttl = 100; /* max = 255 */
+  int ttl = TTL_VALUE; /* max = 255 */
+  int ret_recvmsg;
 
   alarm(1);
   if (setsockopt(params.sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0)
@@ -108,24 +109,32 @@ void send_ping()
 
   ft_bzero(ip, sizeof(struct iphdr));
   ft_bzero(icmp, sizeof(struct icmphdr));
-  icmp->type = 100;
-  icmp->code = 100;
-
-  if (recvmsg(params.sock, &params.msg, 0) <= 0)
-    return;
-
-  if (icmp->type == 11)
+  icmp->type = -1;
+  icmp->code = -1;
+  while (icmp->type != 0 && icmp->type != 11)
   {
-    p_saddr = ntop(ip->saddr);
-    if (params.flag_v == 1)
-      printf("From %s (%s) icmp_seq=%d type=%d code=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence, icmp->type, icmp->code);
-    else
-      printf("From %s (%s) icmp_seq=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence);
-    params.error_cnt++;
-    free(p_saddr);
-    return;
+    if ((ret_recvmsg = recvmsg(params.sock, &params.msg, 0)) <= 0)
+    {
+      if (icmp->type == 8)
+        recvmsg(params.sock, &params.msg, 0);
+      if (errno == 11 && params.flag_v == 1)
+      {
+        printf("ERRNO 11 : Resource temporarily unavailable\n");
+        return;
+      }
+    }
+    if (icmp->type == 11)
+    {
+      p_saddr = ntop(ip->saddr);
+      if (params.flag_v == 1)
+        printf("From %s (%s) icmp_seq=%d type=%d code=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence, icmp->type, icmp->code);
+      else
+        printf("From %s (%s) icmp_seq=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence);
+      params.error_cnt++;
+      free(p_saddr);
+      return;
+    }
   }
-
   gettimeofday(&reply, NULL);
   // printf("rep = %ld, req = %ld\n",reply.tv_sec, request.tv_sec);
 
