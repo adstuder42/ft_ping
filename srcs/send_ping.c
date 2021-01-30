@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:16:45 by adstuder          #+#    #+#             */
-/*   Updated: 2021/01/24 12:42:16 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/01/30 15:42:30 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ void terminate()
 
 void send_ping()
 {
-  struct timeval timeout;
+ struct timeval timeout;
   struct timeval request;
   struct timeval reply;
 
@@ -86,14 +86,15 @@ void send_ping()
     print_error("setsockopt setting IP_TTL failed");
   if (setsockopt(params.sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
     print_error("setsockopt setting SO_RCVTIMEO failed");
-  gettimeofday(&request, NULL);
-  if (setsockopt(params.sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,
-                 sizeof(timeout)) < 0)
+    
+  if (setsockopt(params.sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
     print_error("setsockopt failed");
 
   params.packet.hdr.un.echo.sequence++;
   params.packet.hdr.checksum = 0;
   params.packet.hdr.checksum = checksum(&(params.packet), sizeof(params.packet));
+ 
+   gettimeofday(&request, NULL);
   if (sendto(params.sock, &(params.packet), sizeof(params.packet), 0, (struct sockaddr *)params.target, sizeof(*params.target)) <= 0)
   {
     if (params.packet.hdr.un.echo.sequence == 1)
@@ -107,14 +108,20 @@ void send_ping()
   ip = (struct iphdr *)params.msg.msg_iov[0].iov_base;
   icmp = (struct icmphdr *)(params.msg.msg_iov[0].iov_base + sizeof(struct iphdr));
 
+
   ft_bzero(ip, sizeof(struct iphdr));
   ft_bzero(icmp, sizeof(struct icmphdr));
   icmp->type = -1;
   icmp->code = -1;
+
+ 
   while (icmp->type != 0 && icmp->type != 11)
   {
+
     if ((ret_recvmsg = recvmsg(params.sock, &params.msg, 0)) <= 0)
     {
+printf("XXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
+
       if (icmp->type == 8)
         recvmsg(params.sock, &params.msg, 0);
       if (errno == 11 && params.flag_v == 1)
@@ -122,7 +129,10 @@ void send_ping()
         printf("ERRNO 11 : Resource temporarily unavailable\n");
         return;
       }
+      return;
     }
+printf("OOOOOOOOOOOOOOOOOOOOO   %d\n", icmp->type);
+
     if (icmp->type == 11)
     {
       p_saddr = ntop(ip->saddr);
