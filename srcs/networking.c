@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:03:40 by adstuder          #+#    #+#             */
-/*   Updated: 2021/01/16 13:44:14 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/03/01 15:10:42 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,10 @@ void get_target(char *address)
 
   if ((status = getaddrinfo(address, NULL, &hints, &res)) != 0)
   {
+    if (params.flag_v == 1)
+     // printf("%d\n", status);
     fprintf(stderr, "ping: %s: %s\n", address, ft_gai_strerror(status));
+    free_all();
     exit(EXIT_FAILURE);
   }
 

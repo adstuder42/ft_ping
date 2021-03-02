@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:21:35 by adstuder          #+#    #+#             */
-/*   Updated: 2021/01/16 13:05:02 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/03/02 12:15:44 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,9 +92,5 @@ void set_params()
 
   params.rdns = reverse_dns_lookup();
 
-  send_ping();
-
-  while (1)
-  {
-  }
+ 
 }

@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:19:17 by adstuder          #+#    #+#             */
-/*   Updated: 2021/01/16 12:19:13 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/03/02 12:18:54 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ t_params params;
 
 void usage()
 {
-  printf("Usage\n  ping [options] <destination>\n\nOptions:\n  -v                 verbose output\n  -h                 print help and exit\n\n");
+  printf("Usage\n  ft_ping [options] <destination>\n\nOptions:\n  -v                 verbose output\n  -h                 print help and exit\n\n");
   free_all();
   exit(EXIT_SUCCESS);
 }
@@ -56,12 +56,13 @@ void get_flags(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+  //gai_strerror(-1);
   if (argc < 2)
   {
     fprintf(stderr, "ping: usage error: destination adress required\n");
     exit(EXIT_FAILURE);
   }
-  
+
   signal(SIGALRM, send_ping);
   signal(SIGINT, terminate);
   init_params();
@@ -71,6 +72,11 @@ int main(int argc, char **argv)
   gettimeofday(&params.start, NULL);
 
   set_params();
+  send_ping();
 
+  while (1)
+  {
+  }
+  
   return (0);
 }
