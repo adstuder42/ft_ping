@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:19:17 by adstuder          #+#    #+#             */
-/*   Updated: 2021/03/02 12:18:54 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/03/02 12:48:47 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,11 +72,6 @@ int main(int argc, char **argv)
   gettimeofday(&params.start, NULL);
 
   set_params();
-  send_ping();
-
-  while (1)
-  {
-  }
-  
+ 
   return (0);
 }
