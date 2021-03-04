@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/22 16:00:39 by adstuder          #+#    #+#             */
-/*   Updated: 2021/01/24 11:59:03 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/03/04 10:51:56 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ typedef int SOCKET;
 typedef void (*sighandler_t)(int);
 
 #define PACKET_SIZE 64
-#define TTL_VALUE 100
+#define TTL_VALUE 100 /* max = 255 */
 
 typedef struct s_packet
 {
@@ -85,7 +85,10 @@ void ft_freeaddrinfo(struct addrinfo *res);
 void get_target(char *address);
 int ft_strcmp(const char *s1, const char *s2);
 
+#endif
+
 /*
+
 struct addrinfo {
     int              ai_flags;
     int              ai_family;
@@ -113,27 +116,26 @@ struct sockaddr_in {
 struct in_addr {
     unsigned long s_addr;  // load with inet_aton()
 };
+
+struct icmphdr
+ {
+   u_int8_t type;                   // message type
+   u_int8_t code;                   // type sub-code
+   u_int16_t checksum;
+   union
+   {
+     struct
+     {
+       u_int16_t        id;
+       u_int16_t        sequence;
+     } echo;                        // echo datagram
+     u_int32_t        gateway;      // gateway address
+     struct
+     {
+       u_int16_t        __unused;
+       u_int16_t        mtu;
+     } frag;                        // path mtu discovery
+   } un;
+ };
+
 */
-
-// struct icmphdr
-// {
-//   u_int8_t type;                /* message type */
-//   u_int8_t code;                /* type sub-code */
-//   u_int16_t checksum;
-//   union
-//   {
-//     struct
-//     {
-//       u_int16_t        id;
-//       u_int16_t        sequence;
-//     } echo;                        /* echo datagram */
-//     u_int32_t        gateway;        /* gateway address */
-//     struct
-//     {
-//       u_int16_t        __unused;
-//       u_int16_t        mtu;
-//     } frag;                        /* path mtu discovery */
-//   } un;
-// };
-
-#endif

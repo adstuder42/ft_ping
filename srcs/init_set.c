@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:21:35 by adstuder          #+#    #+#             */
-/*   Updated: 2021/03/02 12:48:52 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/03/04 10:35:37 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,30 +72,20 @@ void set_params()
 
   if ((sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) < 0)
     print_error("socket error");
-
   ft_bzero(&msg, sizeof(msg));
   ft_bzero(iov, sizeof(iov));
- 
- 
   iov[0].iov_base = buffer;
   iov[0].iov_len = sizeof(buffer);
- 
   msg.msg_iov = iov;
   msg.msg_iovlen = 1;
-
-
   ft_bzero(&packet, sizeof(packet));
   packet = set_packet();
   params.msg = msg;
   params.sock = sock;
   params.packet = packet;
-
   params.rdns = reverse_dns_lookup();
-
   send_ping();
-
   while (1)
   {
   }
-  
 }

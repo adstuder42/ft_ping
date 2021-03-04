@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:19:17 by adstuder          #+#    #+#             */
-/*   Updated: 2021/03/02 12:48:47 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/03/04 10:34:21 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,22 +56,17 @@ void get_flags(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-  //gai_strerror(-1);
   if (argc < 2)
   {
     fprintf(stderr, "ping: usage error: destination adress required\n");
     exit(EXIT_FAILURE);
   }
-
   signal(SIGALRM, send_ping);
   signal(SIGINT, terminate);
   init_params();
   get_flags(argc, argv);
   get_target(params.address);
-
   gettimeofday(&params.start, NULL);
-
   set_params();
- 
   return (0);
 }
