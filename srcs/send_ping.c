@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:16:45 by adstuder          #+#    #+#             */
-/*   Updated: 2021/03/04 10:46:11 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/03/04 11:10:41 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,8 +99,8 @@ void send_ping()
   if (sendto(params.sock, &(params.packet), sizeof(params.packet), 0, (struct sockaddr *)params.target, sizeof(*params.target)) <= 0)
   {
     if (params.packet.hdr.un.echo.sequence == 1)
-      print_error("ping: sendto: Le réseau n'est pas accessible");
-    printf("ping: sendto: Le réseau n'est pas accessible\n");
+      print_error("ping: sendto: network unavailable");
+    printf("ping: sendto: network unavailable\n");
     return;
   }
   if (params.packet.hdr.un.echo.sequence == 1)
