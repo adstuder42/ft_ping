@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:16:45 by adstuder          #+#    #+#             */
-/*   Updated: 2021/03/04 11:10:41 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/03/04 17:59:07 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,7 +130,7 @@ void send_ping()
       if (params.flag_v == 1)
         printf("From %s (%s) icmp_seq=%d type=%d code=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence, icmp->type, icmp->code);
       else
-        printf("From %s (%s) icmp_seq=%d Time to live exceeded\n", p_saddr, p_saddr, params.packet.hdr.un.echo.sequence);
+        printf("From %s icmp_seq=%d Time to live exceeded\n", p_saddr, params.packet.hdr.un.echo.sequence);
       params.error_cnt++;
       free(p_saddr);
       return;

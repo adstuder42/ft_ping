@@ -6,7 +6,7 @@
 /*   By: adstuder <adstuder@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/17 15:03:40 by adstuder          #+#    #+#             */
-/*   Updated: 2021/03/04 11:10:45 by adstuder         ###   ########.fr       */
+/*   Updated: 2021/03/04 11:25:38 by adstuder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,6 @@ void get_target(char *address)
   hints.ai_family = AF_INET;
   if ((status = getaddrinfo(address, NULL, &hints, &res)) != 0)
   {
-    if (params.flag_v == 1)
     fprintf(stderr, "ping: %s: %s\n", address, ft_gai_strerror(status));
     free_all();
     exit(EXIT_FAILURE);
